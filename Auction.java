@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * A simple model of an auction.
@@ -21,6 +22,35 @@ public class Auction
     {
         listOfLots = new ArrayList<>();
         nextLotNumber = 1;
+    }
+    
+    public void close()
+    {
+        for(Lot lot : listOfLots)
+        {
+            if(lot.getHighestBid() != null)//always check if null first before calling its methods.
+            {
+                long highestBid = lot.getHighestBid().getValue();
+                String highestBidder = lot.getHighestBid().getBidder().getName();
+                System.out.println(lot.getNumber() + ":" + lot.getDescription()+" was SOLD to: " + highestBidder + " for: "+ highestBid + "$");
+            }else
+            {
+                System.out.println(lot.getNumber() + ":" + lot.getDescription() + " to be sold at a later auction.");
+            }
+        }
+    }
+    
+    public ArrayList getUnsold()
+    {
+        ArrayList<Lot> listOfUnsoldLots = new ArrayList<Lot>();
+        for(Lot lot : listOfLots)
+        {
+            if(lot.getHighestBid() == null)
+            {
+                listOfUnsoldLots.add(lot);
+            }
+        }
+        return listOfUnsoldLots;
     }
 
     /**
@@ -55,8 +85,7 @@ public class Auction
     {
         Lot selectedLot = getLot(lotNumber);
         if(selectedLot != null) {
-            Bid aBid = new Bid(bidder, value);
-            boolean successful = selectedLot.bidFor(aBid);
+            boolean successful = selectedLot.bidFor(new Bid(bidder, value));
             if(successful) {
                 System.out.println("The bid for lot number " +
                                    lotNumber + " was successful.");
@@ -70,7 +99,29 @@ public class Auction
             }
         }
     }
+    
+    /**
+    * Remove the lot with the given lot number.
+    * @param number The number of the lot to be removed.
+    * @return The Lot with the given number, or null if
+    * there is no such lot.
+    */
+    public Lot removeLot(int number)
+    {
+        Iterator<Lot> it = listOfLots.iterator();
+        while(it.hasNext())
+        {
+            Lot lot = it.next();
+            if(number == lot.getNumber())
+            {
+                it.remove();
+                return lot;
+            }
+        }
+        return null;
+    }
 
+    
     /**
      * Return the lot with the given number. Return null if a lot with this 
      * number does not exist.
@@ -79,26 +130,14 @@ public class Auction
      */
     public Lot getLot(int lotNumber)
     {
-        if((lotNumber >= 1) && (lotNumber < nextLotNumber)) {
-            // The number seems to be reasonable.
-            Lot selectedLot = listOfLots.get(lotNumber - 1);
-            // Include a confidence check to be sure we have the
-            // right lot.
-            if(selectedLot.getNumber() != lotNumber) {
-                System.out.println("Internal error: Lot number " +
-                                   selectedLot.getNumber() +
-                                   " was returned instead of " +
-                                   lotNumber);
-                // Don't return an invalid lot.
-                selectedLot = null;
+        for(Lot lot : listOfLots)
+        {
+            if(lotNumber == lot.getNumber())
+            {
+                return lot;
             }
-            return selectedLot;
         }
-        else {
-            System.out.println("Lot number: " + lotNumber +
-                               " does not exist.");
-            return null;
-        }
-    }
+        return null;
+    }    
 }
 
